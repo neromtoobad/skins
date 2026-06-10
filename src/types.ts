@@ -223,6 +223,31 @@ export interface DesignSystem {
 export type MotionStyle = "snappy" | "smooth" | "slow";
 
 // ---------------------------------------------------------------------------
+// Preset shape
+// ---------------------------------------------------------------------------
+
+/**
+ * A built-in design preset: a self-describing bundle of `keywords` (used by
+ * `generateTokens` in AC-4 to score incoming vibes), a full `DesignTokens`
+ * (consumed by every generator), and a `motionStyle` discriminator that
+ * informs the pace of generated animations.
+ *
+ * Presets live in `src/vibes/presets.ts`. The eight required by AC-3 are
+ * `cyberpunk`, `brutalist`, `luxury`, `pastel`, `monochrome`, `retro`,
+ * `organic`, and `glassmorphism`. Additional presets may be added.
+ */
+export interface Preset {
+  /** Unique preset identifier (matches the key in the exported record). */
+  name: string;
+  /** Lowercase keyword fragments used to match free-form vibes. */
+  keywords: string[];
+  /** Full design tokens the preset represents. */
+  tokens: DesignTokens;
+  /** Pacing discriminator; presets of the same style cluster together. */
+  motionStyle: MotionStyle;
+}
+
+// ---------------------------------------------------------------------------
 // Five-output tool shape
 // ---------------------------------------------------------------------------
 
@@ -230,7 +255,12 @@ export type MotionStyle = "snappy" | "smooth" | "slow";
  * The canonical response shape of every MCP tool (AC-8/9/10). Five keys:
  *
  *  - `tokens`    — the resolved `DesignTokens`
- *  - `components` — a record of component name → TSX string (5 entries)
+ *  - `components` — a record of component name → TSX string (5 entries).
+ *                   Note: this is `Record<string, string>` rather than
+ *                   `DesignComponent[]` because the AC-8/9/10 spec calls
+ *                   for "component-name → TSX string" mapping. Use
+ *                   `DesignSystem.components` (an ordered array) when you
+ *                   need the full `{name, code}` record.
  *  - `layout`    — a single TSX string composing the page
  *  - `preview`   — a single self-contained HTML document
  *  - `files`     — a record of component name → TSX string (same as
