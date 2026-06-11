@@ -40,6 +40,7 @@ import {
   type FromImageResponse,
   type ExtractedPalette,
 } from "./src/tools/from-image";
+import { generateFromMotionsites } from "./src/tools/from-motionsites";
 import type { ToolOutput } from "./src/types";
 
 // ---------------------------------------------------------------------------
@@ -49,9 +50,10 @@ import type { ToolOutput } from "./src/types";
 const VIBE = "neon cyberpunk terminal aesthetic with magenta accents";
 const URL = "https://example.com";
 const SAMPLE_PNG = path.join("demo-assets", "sample.png");
+const MOTIONSITES_QUERY = "dark saas hero";
 const OUTPUT_ROOT = "demo-output";
 
-const MODES = ["vibe", "url", "image"] as const;
+const MODES = ["vibe", "url", "image", "motionsites"] as const;
 type Mode = (typeof MODES)[number];
 
 /** Five canonical files every mode must produce on success. */
@@ -350,6 +352,48 @@ async function runImageMode(): Promise<ModeResult> {
   }
 }
 
+async function runMotionsitesMode(): Promise<ModeResult> {
+  const modeDir = path.join(OUTPUT_ROOT, "motionsites");
+  process.stdout.write(`[motionsites] generating from query: ${JSON.stringify(MOTIONSITES_QUERY)}\n`);
+  try {
+    const result = await generateFromMotionsites(MOTIONSITES_QUERY, "closest");
+    // "closest" never returns the `list` envelope, but narrow explicitly so
+    // TypeScript sees the ToolOutput fields (the union also includes `list`).
+    if (result.ok && result.mode !== "list") {
+      writeSuccessOutputs(modeDir, result);
+      writeReadme(modeDir, "motionsites", {
+        input: `${MOTIONSITES_QUERY} → ${result.source.name} (${result.source.category})`,
+        tokens: {
+          primary: result.tokens.colors.primary,
+          secondary: result.tokens.colors.secondary,
+          accent: result.tokens.colors.accent,
+          display: result.tokens.typography.fontFamily.display,
+          body: result.tokens.typography.fontFamily.body,
+          durationBase: result.tokens.motion.durationBase,
+        },
+        extra: {
+          "Source design": result.source.name,
+          "Category": result.source.category,
+          "Prompt URL": result.source.promptUrl,
+        },
+      });
+      process.stdout.write(
+        `[motionsites] wrote ${modeDir}/ (source=${result.source.name}, primary=${result.tokens.colors.primary})\n`,
+      );
+      return { mode: "motionsites", ok: true };
+    }
+    const err = result.ok ? "list mode returned no design system" : result.error;
+    process.stderr.write(`[motionsites] FAILED: ${err}\n`);
+    writeFailureReadme(modeDir, "motionsites", MOTIONSITES_QUERY, err);
+    return { mode: "motionsites", ok: false, error: err };
+  } catch (e) {
+    const msg = (e as Error).message ?? String(e);
+    process.stderr.write(`[motionsites] FAILED: ${msg}\n`);
+    writeFailureReadme(modeDir, "motionsites", MOTIONSITES_QUERY, msg);
+    return { mode: "motionsites", ok: false, error: msg };
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Output verification (AC-13: every folder must contain the 5 canonical files)
 // ---------------------------------------------------------------------------
@@ -373,16 +417,17 @@ function verifyOutputs(): { ok: boolean; missing: string[] } {
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  process.stdout.write("skins-mcp demo: running all three modes\n");
+  process.stdout.write("skins-mcp demo: running all four modes\n");
   process.stdout.write("==========================================\n");
 
-  // Run all three modes sequentially. Failures in one mode do not
-  // short-circuit the others — we want all three output directories
+  // Run all four modes sequentially. Failures in one mode do not
+  // short-circuit the others — we want all four output directories
   // to be inspectable even if one pipeline failed.
   const results: ModeResult[] = [];
   results.push(await runVibeMode());
   results.push(await runUrlMode());
   results.push(await runImageMode());
+  results.push(await runMotionsitesMode());
 
   // Verify the output tree matches the AC-13 spec.
   const verification = verifyOutputs();
