@@ -6,6 +6,12 @@ Most developers ship great logic and mediocre UI. skins-mcp fixes that. It gives
 
 No API key required. No design background required. One call and you have a design system.
 
+> **Just want to use it?** It's already hosted — connect Claude Code in one line:
+> ```bash
+> claude mcp add --transport sse skins https://skins-mcp-production.up.railway.app/sse
+> ```
+> Full developer walkthrough (all clients, every tool, example calls, how to drop the output into your app): **[USING.md](USING.md)**.
+
 ---
 
 ## What it does
@@ -108,19 +114,28 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 
 Fully quit and reopen Claude Desktop. The four tools appear under the hammer icon.
 
-**Option B — hosted URL (no clone needed):**
+**Option B — hosted URL (no clone, no install):**
+
+The server is live at `https://skins-mcp-production.up.railway.app/sse`. Claude Code connects to it directly:
+
+```bash
+claude mcp add --transport sse skins https://skins-mcp-production.up.railway.app/sse
+```
+
+Claude Desktop and Codex speak stdio, so bridge the URL with `mcp-remote`:
 
 ```json
 {
   "mcpServers": {
     "skins-mcp": {
-      "url": "https://skins-mcp.up.railway.app/sse"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://skins-mcp-production.up.railway.app/sse"]
     }
   }
 }
 ```
 
-No installation. One line and you are connected.
+See **[USING.md](USING.md)** for every client and tool example.
 
 ---
 
@@ -397,7 +412,7 @@ railway init
 railway up
 ```
 
-Railway gives you a URL like `https://skins-mcp.up.railway.app/sse`. Share that URL and any developer can connect in one line.
+Railway gives you a public URL — this project's live deployment is `https://skins-mcp-production.up.railway.app/sse`. Share that URL and any developer can connect in one line (see [USING.md](USING.md)).
 
 ---
 
