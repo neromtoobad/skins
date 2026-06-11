@@ -41,7 +41,17 @@ export interface BriefResult {
   };
   brandColors: string[];
   techniques: string[];
+  assets: AssetSlot[];
   brief: string;
+}
+
+/** One image the design needs, with a generation prompt + a free fallback. */
+export interface AssetSlot {
+  slot: string;
+  purpose: string;
+  ratio: string;
+  genPrompt: string;
+  fallback: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -129,6 +139,80 @@ function motionStyleLabel(durationBase: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Asset plan — the images the design needs. Each slot ships a generation
+// prompt (for Higgsfield / any image tool the building agent has) plus a
+// free-stock fallback keyword. skins-mcp never generates images itself.
+// ---------------------------------------------------------------------------
+
+const STOPWORDS = new Set([
+  "a", "an", "the", "for", "with", "and", "of", "to", "in", "on", "bold", "premium",
+  "modern", "clean", "dark", "light", "page", "site", "website", "app", "ui", "design",
+  "broadcast", "cinematic", "vibe", "style", "look",
+]);
+
+function keywords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOPWORDS.has(w) && !COLOR_WORDS.includes(w))
+    .filter((w, i, a) => a.indexOf(w) === i)
+    .slice(0, 5);
+}
+
+function stock(kw: string[], ratio: string): string {
+  const q = kw.length ? kw.join(",") : "abstract,texture";
+  return `free stock — search Unsplash/Pexels for "${kw.join(" ") || "abstract"}" (or https://picsum.photos/seed/${q.replace(/[^a-z0-9]/g, "")}/1600/900 as a neutral ${ratio} placeholder)`;
+}
+
+function buildAssetPlan(
+  query: string,
+  target: string | undefined,
+  paletteDesc: string,
+  motionStyle: string,
+): AssetSlot[] {
+  const subject = keywords(`${query} ${target ?? ""}`);
+  const subjectStr = subject.join(" ") || query;
+  const style = `${paletteDesc}, ${motionStyle} mood, dramatic lighting, high detail, sharp focus, no text, no watermark`;
+
+  const slots: AssetSlot[] = [
+    {
+      slot: "hero-key-visual",
+      purpose: "The hero's focal subject / background — the first thing seen. Carries the whole vibe.",
+      ratio: "16:9",
+      genPrompt: `Cinematic hero key visual for ${subjectStr}: a striking central subject, depth, atmosphere, ${style}, 16:9`,
+      fallback: stock(subject, "16:9"),
+    },
+    {
+      slot: "ambient-texture",
+      purpose: "A subtle full-bleed texture/gradient field behind dark sections so they don't read flat.",
+      ratio: "16:9",
+      genPrompt: `Abstract premium background texture inspired by ${subjectStr}: soft gradient, grain, bokeh light, ${paletteDesc}, very low contrast, no subject, 16:9`,
+      fallback: stock(["abstract", ...subject.slice(0, 2)], "16:9"),
+    },
+    {
+      slot: "feature-art",
+      purpose: "1–3 supporting images for feature/showcase sections (mix angles).",
+      ratio: "4:3",
+      genPrompt: `Editorial showcase image for ${subjectStr}: dynamic composition, ${style}, 4:3`,
+      fallback: stock(subject, "4:3"),
+    },
+  ];
+
+  // People imagery only when the content implies it.
+  if (/\b(player|people|team|profile|avatar|manager|leaderboard|member|user|portrait|creator|founder)\b/i.test(`${query} ${target ?? ""}`)) {
+    slots.push({
+      slot: "portrait-set",
+      purpose: "Avatars / portraits for rosters, leaderboards, testimonials.",
+      ratio: "1:1",
+      genPrompt: `Studio portrait for ${subjectStr}: single subject, clean rim light, ${paletteDesc} backdrop, centered, 1:1`,
+      fallback: `free portraits — https://i.pravatar.cc/240?img=N (N=1..70), or generate per person`,
+    });
+  }
+  return slots;
+}
+
+// ---------------------------------------------------------------------------
 // Brief assembly
 // ---------------------------------------------------------------------------
 
@@ -147,6 +231,11 @@ export function buildBrief(query: string, target?: string): BriefResult {
 
   const sourceHex = [...prompt.colors];
   const brandColors = detectBrandColors(`${query} ${target ?? ""}`);
+
+  const paletteDesc = brandColors.length
+    ? `${brandColors.join(" + ")} palette`
+    : `${colors.primary} / ${colors.accent} on ${colors.background}`;
+  const assets = buildAssetPlan(query, target, paletteDesc, motionStyle);
 
   // ----- assemble the directive text (this is what the model reads) -----
   const lines: string[] = [];
@@ -205,6 +294,22 @@ export function buildBrief(query: string, target?: string): BriefResult {
   lines.push("- If a choice would look 'basic', pick the more ambitious option.");
 
   lines.push("");
+  lines.push("## Asset plan — REAL images (the biggest premium multiplier)");
+  lines.push("Do NOT ship solid color blocks where a hero/feature image belongs. Generate the images below, then wire them in (object-cover, lazy-load, alt text, a gradient scrim over anything with text on top).");
+  for (const a of assets) {
+    lines.push(`- **${a.slot}** (${a.ratio}) — ${a.purpose}`);
+    lines.push(`    - generate: \`${a.genPrompt}\``);
+    lines.push(`    - fallback: ${a.fallback}`);
+  }
+
+  lines.push("");
+  lines.push("## Image strategy");
+  lines.push("1. If you have an image-generation tool (e.g. **Higgsfield** `generate_image`, or any DALL·E/SD tool), GENERATE the assets above from their prompts — bespoke art beats stock and makes the result unique.");
+  lines.push("2. If not, use the free-stock fallback keywords (Unsplash / Pexels), or `picsum.photos` for neutral placeholders.");
+  lines.push("3. Never hotlink Pinterest/Google Images — those URLs rot and aren't licensed. Generated or properly-licensed stock only.");
+  lines.push("4. Treat imagery as a design layer: duotone/overlay it to the palette, add grain, and let it bleed behind text with a gradient for contrast.");
+
+  lines.push("");
   lines.push("## Output");
   lines.push(
     "Default to a **single self-contained HTML file** (Google Fonts via CDN, vanilla JS, no build step) so it opens by double-click. If the user's project is React, emit **React + TypeScript + Tailwind + Framer Motion** components instead. Match whatever stack the target already uses.",
@@ -238,6 +343,7 @@ export function buildBrief(query: string, target?: string): BriefResult {
     },
     brandColors,
     techniques: techIds,
+    assets,
     brief: lines.join("\n"),
   };
 }
