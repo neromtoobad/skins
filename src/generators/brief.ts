@@ -14,6 +14,7 @@ import { searchPrompts } from "../scrapers/motionsites";
 import type { MotionsitesPrompt } from "../scrapers/motionsites-data";
 import { extractTokensFromPrompt } from "../scrapers/motionsites-token-extractor";
 import type { SiteDNA } from "./../scrapers/site-dna";
+import { searchDeepReferences, type DeepReference } from "../references/deep-references";
 
 // ---------------------------------------------------------------------------
 // Public result shape
@@ -285,7 +286,105 @@ function outputLines(): string[] {
   ];
 }
 
+/** Resolve technique ids to toolkit entries, preserving the given order. */
+function techniquesByIds(ids: string[]): Technique[] {
+  return ids
+    .map((id) => TECHNIQUES.find((t) => t.id === id))
+    .filter((t): t is Technique => Boolean(t));
+}
+
+/**
+ * Build a brief from a curated DEEP reference — the highest-quality path.
+ * Includes a section-by-section blueprint the model can implement directly.
+ */
+export function buildBriefFromReference(
+  ref: DeepReference,
+  query: string,
+  target?: string,
+): BriefResult {
+  const recommended = techniquesByIds(ref.techniques);
+  const brandColors = detectBrandColors(`${query} ${target ?? ""}`);
+  const paletteDesc = brandColors.length
+    ? `${brandColors.join(" + ")} palette`
+    : `${ref.palette.primary} / ${ref.palette.accent} on ${ref.palette.background}`;
+  const subject = query.trim() || ref.summary;
+  const assets = buildAssetPlan(subject, target, paletteDesc, ref.motion.style);
+
+  const lines: string[] = [];
+  lines.push(`# DESIGN BRIEF — "${ref.name}" (${ref.category})`);
+  lines.push("");
+  lines.push(
+    target
+      ? "Redesign the target below in this design language. Keep its real content/data; transform the presentation entirely. Do NOT ship a watered-down version."
+      : "Build a complete, production-grade page in this design language. Do NOT ship a watered-down version.",
+  );
+  if (target) {
+    lines.push("");
+    lines.push("## Target (the user's content)");
+    lines.push(target.trim());
+  }
+
+  lines.push("");
+  lines.push("## Design DNA");
+  lines.push(`- **Essence:** ${ref.summary}`);
+  lines.push(`- **Signature move:** ${ref.signature}`);
+  if (brandColors.length) {
+    lines.push(`- **Brand colors the user asked for (these take PRIORITY):** ${brandColors.join(", ")}`);
+  }
+  lines.push(`- **Theme:** ${ref.theme}`);
+  lines.push(
+    `- **Palette:** background ${ref.palette.background}, surface ${ref.palette.surface}, text ${ref.palette.foreground}, primary ${ref.palette.primary}, accent ${ref.palette.accent}`,
+  );
+  lines.push(`- **Type:** display \`${ref.fonts.display}\`, body \`${ref.fonts.body}\`, mono \`${ref.fonts.mono}\` — ${ref.fonts.note}`);
+  lines.push(`- **Motion:** ${ref.motion.style} — signature beats: ${ref.motion.beats.join(", ")}.`);
+
+  lines.push("");
+  lines.push("## Reference blueprint — build these sections");
+  ref.sections.forEach((s, i) => {
+    lines.push(`${i + 1}. **${s.name}** — ${s.detail}`);
+  });
+
+  lines.push(...directiveLines());
+  lines.push(...techniqueLines(recommended));
+  lines.push(...qualityBarLines());
+  lines.push(...imageSectionLines(assets));
+  lines.push(...outputLines());
+
+  return {
+    source: {
+      name: ref.name,
+      category: ref.category,
+      type: "deep-reference",
+      promptUrl: "",
+      animationKeywords: ref.motion.beats,
+      score: 0,
+    },
+    palette: {
+      primary: ref.palette.primary,
+      secondary: ref.palette.accent,
+      accent: ref.palette.accent,
+      background: ref.palette.background,
+      surface: ref.palette.surface,
+      foreground: ref.palette.foreground,
+      sourceHex: ref.palette.hexes,
+      fonts: { display: ref.fonts.display, body: ref.fonts.body, mono: ref.fonts.mono },
+      motionStyle: ref.motion.style,
+      durations: { base: 0.5, fast: 0.25, slow: 0.9, stagger: 0.08 },
+    },
+    brandColors,
+    techniques: recommended.map((t) => t.id),
+    assets,
+    brief: lines.join("\n"),
+  };
+}
+
 export function buildBrief(query: string, target?: string): BriefResult {
+  // Prefer a curated deep reference when one matches strongly — it carries a
+  // full section blueprint, not a one-line summary.
+  const deepTop = searchDeepReferences(query)[0];
+  if (deepTop && deepTop.score >= 3) {
+    return buildBriefFromReference(deepTop, query, target);
+  }
   const results = searchPrompts(query);
   const prompt = results[0];
 

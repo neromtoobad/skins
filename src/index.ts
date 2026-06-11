@@ -1,9 +1,10 @@
 /**
  * skins-mcp — Model Context Protocol server entry point.
  *
- * This module wires together the five MCP tools (`generate_from_vibe`,
+ * This module wires together the six MCP tools (`generate_from_vibe`,
  * `generate_from_url`, `generate_from_image`, `generate_from_motionsites`,
- * `generate_brief`) onto a single stdio transport. The implementation lives in:
+ * `generate_brief`, `generate_brief_from_url`) onto a single stdio
+ * transport. The implementation lives in:
  *   - src/types.ts                — shared TypeScript types
  *   - src/vibes/presets.ts        — built-in design presets
  *   - src/llm.ts                  — OpenAI-compatible LLM client
@@ -17,11 +18,14 @@
  *   - src/tools/from-image.ts     — image tool
  *   - src/tools/from-motionsites.ts — motionsites tool
  *   - src/generators/brief.ts     — the "brief engine" (asset plan + directive)
+ *   - src/references/deep-references.ts — curated full design blueprints
+ *   - src/scrapers/site-dna.ts    — live-site design-DNA extractor
  *   - src/tools/from-brief.ts     — generate_brief tool
+ *   - src/tools/from-url-brief.ts — generate_brief_from_url tool
  *
  * Entry-point contract (AC-11):
  *   1. Build a single `McpServer` instance.
- *   2. Register all five tools on it via the per-tool `register*` helpers.
+ *   2. Register all six tools on it via the per-tool `register*` helpers.
  *   3. Connect to a `StdioServerTransport` (the de-facto MCP transport for
  *      local tool servers).
  *   4. Log a single `skins-mcp ready` line to stderr — MCP clients read
@@ -48,7 +52,7 @@ import { registerFromUrlBrief } from "./tools/from-url-brief";
 export function buildServer(): McpServer {
   const server = new McpServer({
     name: "skins-mcp",
-    version: "0.5.0",
+    version: "0.6.0",
   });
 
   // Register every tool on the single server instance. The registrations
