@@ -23,11 +23,27 @@
  */
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { generateTokens } from "../generators/tokens";
+import { generateTokens, pickClosestPreset } from "../generators/tokens";
 import { generateComponents } from "../generators/components";
 import { generateLayout } from "../generators/layout";
 import { generatePreview } from "../generators/preview";
+import { searchPrompts } from "../scrapers/motionsites";
+import { extractTokensFromPrompt } from "../scrapers/motionsites-token-extractor";
 import type { DesignTokens, ToolOutput } from "../types";
+
+/**
+ * Which design source drove the generation, surfaced on the vibe tool's
+ * output (documented in the README's canonical output shape). Exactly one
+ * of `preset` / `motionsites` is populated: a strong motionsites match
+ * (score >= 2) wins, otherwise the closest built-in preset is reported.
+ */
+export type VibeSource = {
+  preset?: string;
+  motionsites?: { name: string; category: string; promptUrl: string };
+};
+
+/** The vibe tool returns the canonical five outputs plus a `source`. */
+export type VibeOutput = ToolOutput & { source: VibeSource };
 
 // ---------------------------------------------------------------------------
 // Input schema
@@ -63,8 +79,47 @@ const vibeInputShape: { vibe: z.ZodString } = {
  * and bundle the five outputs. This is the pure (no-MCP) entry point
  * used by both the MCP tool wrapper and the in-process harness.
  */
-export async function generateFromVibe(vibe: string): Promise<ToolOutput> {
-  const tokens: DesignTokens = await generateTokens({ vibe });
+export async function generateFromVibe(vibe: string): Promise<VibeOutput> {
+  // Check if a motionsites design matches the vibe (score >= 2 = strong match)
+  const motionsitesResults = searchPrompts(vibe);
+  const topMatch = motionsitesResults[0];
+  const topScore = topMatch?.score ?? 0;
+
+  let tokens: DesignTokens;
+  let source: VibeSource;
+
+  if (topScore >= 2) {
+    // Strong motionsites match — derive tokens from the production design spec
+    const extracted = extractTokensFromPrompt(topMatch);
+    const baseTokens = await generateTokens({ vibe });
+    // Merge: motionsites extracted values override the preset base
+    tokens = {
+      colors: extracted.colors ? { ...baseTokens.colors, ...extracted.colors } : baseTokens.colors,
+      typography: extracted.typography
+        ? {
+            fontFamily: { ...baseTokens.typography.fontFamily, ...extracted.typography.fontFamily },
+            fontSize: baseTokens.typography.fontSize,
+            fontWeight: baseTokens.typography.fontWeight,
+          }
+        : baseTokens.typography,
+      spacing: baseTokens.spacing,
+      motion: extracted.motion ? { ...baseTokens.motion, ...extracted.motion } : baseTokens.motion,
+      shadows: extracted.shadows ? { ...baseTokens.shadows, ...extracted.shadows } : baseTokens.shadows,
+      radius: baseTokens.radius,
+    };
+    source = {
+      motionsites: {
+        name: topMatch.name,
+        category: topMatch.category,
+        promptUrl: topMatch.promptUrl,
+      },
+    };
+  } else {
+    // No strong motionsites match — use local preset
+    tokens = await generateTokens({ vibe });
+    source = { preset: pickClosestPreset(vibe).preset.name };
+  }
+
   const components = generateComponents(tokens);
   const layout = generateLayout(tokens);
   const preview = generatePreview(tokens, layout);
@@ -73,10 +128,8 @@ export async function generateFromVibe(vibe: string): Promise<ToolOutput> {
     components,
     layout,
     preview,
-    // `files` is a convenience alias of `components` so consumers
-    // who want to splat every component to its own .tsx file can do
-    // it with one line: `for (const [name, code] of Object.entries(out.files))`.
     files: { ...components },
+    source,
   };
 }
 

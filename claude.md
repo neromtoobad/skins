@@ -3,18 +3,21 @@
 This file is the canonical "how we work" reference for the project. Claude and other agents should read it before making non-trivial changes.
 
 ## What this project is
-`skins-mcp` is a **Model Context Protocol (MCP) server** that converts a natural-language vibe (or a scraped URL or a base64 image) into a complete React + Tailwind + Framer Motion design system. It exposes three MCP tools:
+`skins-mcp` is a **Model Context Protocol (MCP) server** that converts a natural-language vibe (or a scraped URL, a base64 image, or a motionsites.ai design spec) into a complete React + Tailwind + Framer Motion design system. It exposes four MCP tools:
 
-- `generate_from_vibe` — text → design system
+- `generate_from_vibe` — text → design system (now motionsites-aware: a strong match in the bundled library overrides the preset base)
 - `generate_from_url` — URL → design system (fetches + parses)
 - `generate_from_image` — base64 PNG/JPG → design system (k-means palette)
+- `generate_from_motionsites` — design name / category / keyword → design system, driven by the bundled motionsites.ai library (61 specs)
 
-Every tool returns the same five-output shape: `tokens`, `components` (5 TSX strings), `layout` (one TSX string), `preview` (one self-contained HTML string), and `files` (component-name → TSX string).
+Every tool returns the same five-output shape: `tokens`, `components` (5 TSX strings), `layout` (one TSX string), `preview` (one self-contained HTML string), and `files` (component-name → TSX string). The vibe and motionsites tools add a `source` field naming the winning preset / design.
+
+The server can run over **stdio** (`src/index.ts`, the default for local MCP clients) or **HTTP/SSE** (`src/server.ts`, `npm run serve`). Note: HTTP/SSE was out of scope in the original AC plan and was added afterward.
 
 ## Stack
 - **Language**: TypeScript 5.4, strict mode
 - **Runtime**: Node.js >= 18
-- **Server SDK**: `@modelcontextprotocol/sdk` 1.x (`McpServer` + `StdioServerTransport`)
+- **Server SDK**: `@modelcontextprotocol/sdk` 1.x (`McpServer` + `StdioServerTransport`, or `SSEServerTransport` via `express` 5.x in `src/server.ts`)
 - **Schema**: `zod` 3.x (also re-exported by the SDK for tool inputs)
 - **HTML parsing**: `cheerio` 1.x
 - **Image processing**: `sharp` 0.33.x
@@ -26,13 +29,18 @@ Every tool returns the same five-output shape: `tokens`, `components` (5 TSX str
 .
 ├── package.json           # name = "skins-mcp", scripts: start / demo / build / verify
 ├── tsconfig.json          # strict, ES2022, node resolution
-├── demo.ts                # AC-13 driver: writes demo-output/{vibe,url,image}/
+├── demo.ts                # AC-13 driver: writes demo-output/{vibe,url,image,motionsites}/
 ├── src/
-│   ├── index.ts           # AC-11: wires the three tools to StdioServerTransport
+│   ├── index.ts           # AC-11: wires the four tools to StdioServerTransport
+│   ├── server.ts          # HTTP/SSE transport (express 5.x) — `npm run serve`
 │   ├── types.ts           # AC-2: DesignTokens / DesignSystem
 │   ├── llm.ts             # AC-12: callLlm + LlmUnavailableError
 │   ├── vibes/
-│   │   └── presets.ts     # AC-3: 8 hand-tuned presets
+│   │   └── presets.ts     # AC-3: 9 hand-tuned presets
+│   ├── scrapers/
+│   │   ├── motionsites-data.ts            # 61 bundled motionsites.ai prompt specs
+│   │   ├── motionsites.ts                 # search/scoring over the bundled library
+│   │   └── motionsites-token-extractor.ts # prompt spec → Partial<DesignTokens>
 │   ├── generators/
 │   │   ├── tokens.ts      # AC-4: generateTokens({ vibe?, colors?, fontHints? })
 │   │   ├── components.ts  # AC-5: generateComponents(tokens) → 5 TSX strings
@@ -40,9 +48,10 @@ Every tool returns the same five-output shape: `tokens`, `components` (5 TSX str
 │   │   ├── preview.ts     # AC-7: generatePreview(tokens, layout) → HTML
 │   │   └── tailwind-dict.ts # allow-list of Tailwind classes per component
 │   └── tools/
-│       ├── from-vibe.ts   # AC-8: registers generate_from_vibe
+│       ├── from-vibe.ts   # AC-8: registers generate_from_vibe (motionsites-aware)
 │       ├── from-url.ts    # AC-9: registers generate_from_url
-│       └── from-image.ts  # AC-10: registers generate_from_image
+│       ├── from-image.ts  # AC-10: registers generate_from_image
+│       └── from-motionsites.ts # registers generate_from_motionsites
 ├── scripts/
 │   └── verify-output.mjs  # AC-15: regex checks on generated TSX
 ├── demo-assets/           # generated sample.png for AC-13
