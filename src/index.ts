@@ -36,15 +36,16 @@ import { registerFromVibe } from "./tools/from-vibe";
 import { registerFromUrl } from "./tools/from-url";
 import { registerFromImage } from "./tools/from-image";
 import { registerFromMotionsites } from "./tools/from-motionsites";
+import { registerFromBrief } from "./tools/from-brief";
 
 /**
- * Build the MCP server and register the four design-system tools.
+ * Build the MCP server and register the five design-system tools.
  * Exported for tests and for the demo driver.
  */
 export function buildServer(): McpServer {
   const server = new McpServer({
     name: "skins-mcp",
-    version: "0.2.0",
+    version: "0.3.0",
   });
 
   // Register every tool on the single server instance. The registrations
@@ -54,6 +55,7 @@ export function buildServer(): McpServer {
   registerFromUrl(server);
   registerFromImage(server);
   registerFromMotionsites(server);
+  registerFromBrief(server);
 
   return server;
 }

@@ -70,14 +70,17 @@ The assistant gets back design tokens, five components, a full-page layout, and 
 
 ---
 
-## 3. The four tools (reference)
+## 3. The five tools (reference)
 
 | Tool | Input | Use it for |
 |---|---|---|
-| `generate_from_vibe` | `{ vibe: string }` | A plain-English description |
+| `generate_brief` ⭐ | `{ query: string, target?: string }` | **Ambitious full redesigns** — returns a build directive that makes the assistant *cook* (see below) |
+| `generate_from_vibe` | `{ vibe: string }` | A plain-English description → tokens + 5 components |
 | `generate_from_url` | `{ url: string }` | Match an existing site's look |
 | `generate_from_image` | `{ imageBase64: string, mimeType?: string }` | Match an image's color palette |
 | `generate_from_motionsites` | `{ query: string, mode?: "closest" \| "list" \| "random" }` | Pull from 61 bundled production hero specs |
+
+**`generate_brief` is the one you want for "insane" UI.** The other four return a fixed token system + 5 boilerplate components (Button/Card/Input/Navbar/StatCard) — good for a quick theme, but not a wow page. `generate_brief` instead returns a **design brief + build directive** (palette, motion, a technique toolkit, and an anti-slop quality bar) that instructs the assistant to build a complete, heavily-animated page adapting to *your* content. Pass `target` with your page's purpose/sections so it tailors the brief. Example prompts: *"Use skins generate_brief to redesign this football site, bold broadcast, pitch green and gold"*, *"give me an insane 3D portfolio brief and build it."*
 
 `generate_from_motionsites` modes: **`closest`** (default — best match, full generation), **`list`** (browse matches without generating), **`random`** (pick a random match).
 
