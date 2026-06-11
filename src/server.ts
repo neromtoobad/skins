@@ -31,7 +31,7 @@ const TOOLS = [
 ];
 
 function buildServer(): McpServer {
-  const server = new McpServer({ name: "skins-mcp", version: "0.8.1" });
+  const server = new McpServer({ name: "skins-mcp", version: "0.8.2" });
   registerFromVibe(server);
   registerFromUrl(server);
   registerFromImage(server);
@@ -72,7 +72,7 @@ async function main(): Promise<void> {
   });
 
   app.get("/health", (_req, res) => {
-    res.json({ ok: true, tools: TOOLS, version: "0.8.1" });
+    res.json({ ok: true, tools: TOOLS, version: "0.8.2" });
   });
 
   app.listen(PORT, () => {

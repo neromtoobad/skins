@@ -53,9 +53,9 @@ export const DEEP_REFERENCES: DeepReference[] = [
     name: "Apex — Dark AI SaaS",
     category: "SaaS / AI",
     keywords: ["saas", "ai", "dark", "glass", "glassmorphism", "startup", "b2b", "platform", "dashboard", "tech", "software", "agent"],
-    summary: "Near-black, glassy, glowing — the modern AI-startup hero with a floating navbar and a gradient-bordered CTA.",
+    summary: "Near-black, glassy, glowing — the modern AI-startup hero with a floating navbar, an emerald/lime accent (deliberately NOT the indigo AI-slop default).",
     theme: "dark",
-    palette: { background: "#070612", surface: "#0e0c1d", foreground: "#f5f5fa", primary: "#7c5cff", accent: "#22d3ee", hexes: ["#070612", "#7c5cff", "#22d3ee", "#a78bfa", "#f5f5fa"] },
+    palette: { background: "#0a0b0d", surface: "#14171a", foreground: "#f2f4f5", primary: "#19d9a0", accent: "#d6ff4a", hexes: ["#0a0b0d", "#19d9a0", "#d6ff4a", "#14171a", "#f2f4f5"] },
     fonts: { display: "Space Grotesk", body: "Inter", mono: "JetBrains Mono", note: "Tight, techy display; high-legibility body; mono for metrics/code." },
     motion: { style: "snappy", beats: ["blur-in", "stagger", "glow-pulse", "marquee"] },
     sections: [
@@ -218,7 +218,7 @@ export const DEEP_REFERENCES: DeepReference[] = [
     keywords: ["space", "cosmic", "stars", "galaxy", "astronomy", "rocket", "planet", "exploration", "sci-fi", "universe", "nebula", "orbit"],
     summary: "Deep-space black, a twinkling parallax star-field, orbiting planets, glowing accents.",
     theme: "dark",
-    palette: { background: "#020209", surface: "#0a0a1a", foreground: "#eef2ff", primary: "#7c5cff", accent: "#a5b4fc", hexes: ["#020209", "#7c5cff", "#a5b4fc", "#22d3ee", "#eef2ff"] },
+    palette: { background: "#03040b", surface: "#0a0d1a", foreground: "#eef4ff", primary: "#22d3ee", accent: "#fcd34d", hexes: ["#03040b", "#22d3ee", "#fcd34d", "#7dd3fc", "#eef4ff"] },
     fonts: { display: "Orbitron", body: "Inter", mono: "Space Mono", note: "Space-grade display (Orbitron), clean body; airy tracking." },
     motion: { style: "cinematic / scroll-driven", beats: ["twinkle", "parallax", "orbit", "float", "glow"] },
     sections: [

@@ -228,6 +228,7 @@ function directiveLines(): string[] {
     "",
     "## Build directive — BUILD THIS, do not simplify",
     "> **This is a full transformation, not a reskin.** Adopt THIS brief's palette, type, and layout wholesale — replace the page's existing colors and structure, don't tint them. A redesign that still resembles the original (same color family, same layout) has FAILED the brief. Rebuild the page from the blueprint; reuse only the user's real content/data.",
+    "> **Escape AI-slop colour.** Do NOT use indigo/violet/purple on near-black (the `slate-900` + `indigo-500`/`#6366f1` combo) — that is the #1 tell of generic AI output. This brief's palette is chosen specifically to avoid it; use the Starter tokens exactly.",
     "1. **Cinematic hero with depth.** Layered gradients/glow, a focal subject, and motion on load. Never a flat centered headline on a solid background.",
     "2. **Animate everything that earns it.** Scroll-reveal with stagger, count-ups on stats, hover micro-interactions on every interactive element, an animated headline. Motion should feel intentional, not decorative.",
     "3. **One cohesive token system.** Define CSS variables (or Tailwind theme) for color/space/type/motion up top and use them everywhere. No ad-hoc values.",
@@ -277,6 +278,33 @@ function imageSectionLines(assets: AssetSlot[]): string[] {
     "4. Treat imagery as a design layer: duotone/overlay it to the palette, add grain, and let it bleed behind text with a gradient for contrast.",
   );
   return out;
+}
+
+function motionSectionLines(): string[] {
+  return [
+    "",
+    "## Motion — REQUIRED, not decoration",
+    "A static page FAILS this brief. Implement at minimum: (1) scroll-reveal on every section, (2) the one signature hero motion moment, (3) hover micro-interactions on every interactive element, (4) count-up on any number. Use only `transform`/`opacity`, rAF-throttled, passive listeners, and respect `prefers-reduced-motion`. Paste-ready primitives — wire them in, don't reinvent:",
+    "```js",
+    "// 1) scroll-reveal — put class=\"reveal\" on anything that should animate in",
+    "const _io = new IntersectionObserver((es) => es.forEach((e) => {",
+    "  if (e.isIntersecting) { e.target.classList.add('in'); _io.unobserve(e.target); }",
+    "}), { threshold: 0.15 });",
+    "document.querySelectorAll('.reveal').forEach((el, i) => { el.style.transitionDelay = (i % 6) * 60 + 'ms'; _io.observe(el); });",
+    "",
+    "// 2) count-up — <span data-count=\"24180\">0</span>",
+    "function countUp(el){const t=+el.dataset.count;let s;const f=(x)=>{s??=x;const k=Math.min(1,(x-s)/1200);el.textContent=Math.round(t*(1-(1-k)**3)).toLocaleString();if(k<1)requestAnimationFrame(f);};requestAnimationFrame(f);}",
+    "document.querySelectorAll('[data-count]').forEach((el)=>{const o=new IntersectionObserver((e)=>{if(e[0].isIntersecting){countUp(el);o.disconnect();}});o.observe(el);});",
+    "",
+    "// 3) cursor parallax — put data-parallax=\"20\" on hero layers (bigger = moves more)",
+    "addEventListener('pointermove',(e)=>{const x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;document.querySelectorAll('[data-parallax]').forEach((el)=>{const d=+el.dataset.parallax||12;el.style.transform=`translate(${x*d}px, ${y*d}px)`;});},{passive:true});",
+    "```",
+    "```css",
+    ".reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}",
+    ".reveal.in{opacity:1;transform:none}",
+    "@media (prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none}}",
+    "```",
+  ];
 }
 
 function outputLines(): string[] {
@@ -397,6 +425,7 @@ export function buildBriefFromReference(
 
   lines.push(...directiveLines());
   lines.push(...techniqueLines(recommended));
+  lines.push(...motionSectionLines());
   lines.push(...qualityBarLines());
   lines.push(...imageSectionLines(assets));
   lines.push(...outputLines());
@@ -492,6 +521,7 @@ export function buildBrief(query: string, target?: string): BriefResult {
 
   lines.push(...directiveLines());
   lines.push(...techniqueLines(recommended));
+  lines.push(...motionSectionLines());
   lines.push(...qualityBarLines());
   lines.push(...imageSectionLines(assets));
   lines.push(...outputLines());
@@ -617,6 +647,7 @@ export function buildBriefFromDNA(dna: SiteDNA): BriefResult {
 
   lines.push(...directiveLines());
   lines.push(...techniqueLines(recommended));
+  lines.push(...motionSectionLines());
   lines.push(...qualityBarLines());
   lines.push(...imageSectionLines(assets));
   lines.push(...outputLines());
