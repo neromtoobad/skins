@@ -2,8 +2,8 @@
 /**
  * scripts/verify-output.mjs — AC-15 verification script.
  *
- * Reads every `components.json` under `demo-output/STAR/` (i.e. every
- * subdir of demo-output) and asserts that every component:
+ * Reads every `components.json` under every subdirectory of
+ * `demo-output/` and asserts that every component:
  *
  *   1. contains `import { motion } from "framer-motion"`,
  *   2. contains a `variants` declaration, and
@@ -226,9 +226,9 @@ function verifyComponent(name, code, subdir) {
  * Return the immediate child directory names of `demo-output/`. We
  * treat any directory as a candidate mode folder; the AC spec calls
  * for components.json files under every subdir of demo-output, so the
- * natural shape is to iterate the immediate children. We do not constrain
- * currently produces `vibe`, `url`, `image` but the script should
- * happily accept anything).
+ * natural shape is to iterate the immediate children. We do not
+ * constrain the names (the demo currently produces `vibe`, `url`,
+ * `image`, but the script should happily accept anything).
  */
 function listModeDirs() {
   let entries;

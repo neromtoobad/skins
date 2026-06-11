@@ -15,7 +15,6 @@
     "demo": "ts-node demo.ts",
     "build": "tsc",
     "verify": "tsc --noEmit && node scripts/verify-output.mjs",
-    "verify:browser": "node scripts/browser-verify.mjs",
     "verify:browser": "node scripts/browser-verify.mjs"
   },
   "keywords": [
