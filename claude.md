@@ -10,6 +10,7 @@ This file is the canonical "how we work" reference for the project. Claude and o
 - `generate_from_image` — base64 PNG/JPG → design system (k-means palette)
 - `generate_from_motionsites` — design name / category / keyword → design system, driven by the bundled motionsites.ai library (61 specs)
 - `generate_brief` — vibe + optional `target` → a DESIGN BRIEF + build directive (palette, motion, technique toolkit, anti-slop quality bar) that instructs the calling model to *build* an ambitious page itself, rather than returning canned components. Lives in `src/generators/brief.ts` + `src/tools/from-brief.ts`. This is the "make it cook" path.
+- `generate_brief_from_url` — point at ANY live site → extracts its **design DNA** (palette+roles, fonts via @font-face/Google Fonts, animation libs, glass/gradient/3D features, dark/light, radius, density; fetches external stylesheets too) and returns a brief in that site's design language. Lives in `src/scrapers/site-dna.ts` + `src/generators/brief.ts` (`buildBriefFromDNA`) + `src/tools/from-url-brief.ts`. The "pull insane designs from the web" path — the web is the reference library.
 
 Every tool returns the same five-output shape: `tokens`, `components` (5 TSX strings), `layout` (one TSX string), `preview` (one self-contained HTML string), and `files` (component-name → TSX string). The vibe and motionsites tools add a `source` field naming the winning preset / design.
 

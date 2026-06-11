@@ -17,6 +17,7 @@ import { registerFromUrl } from "./tools/from-url";
 import { registerFromImage } from "./tools/from-image";
 import { registerFromMotionsites } from "./tools/from-motionsites";
 import { registerFromBrief } from "./tools/from-brief";
+import { registerFromUrlBrief } from "./tools/from-url-brief";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 
@@ -26,15 +27,17 @@ const TOOLS = [
   "generate_from_image",
   "generate_from_motionsites",
   "generate_brief",
+  "generate_brief_from_url",
 ];
 
 function buildServer(): McpServer {
-  const server = new McpServer({ name: "skins-mcp", version: "0.3.1" });
+  const server = new McpServer({ name: "skins-mcp", version: "0.5.0" });
   registerFromVibe(server);
   registerFromUrl(server);
   registerFromImage(server);
   registerFromMotionsites(server);
   registerFromBrief(server);
+  registerFromUrlBrief(server);
   return server;
 }
 
@@ -69,7 +72,7 @@ async function main(): Promise<void> {
   });
 
   app.get("/health", (_req, res) => {
-    res.json({ ok: true, tools: TOOLS, version: "0.3.1" });
+    res.json({ ok: true, tools: TOOLS, version: "0.5.0" });
   });
 
   app.listen(PORT, () => {

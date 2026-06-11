@@ -75,6 +75,7 @@ The assistant gets back design tokens, five components, a full-page layout, and 
 | Tool | Input | Use it for |
 |---|---|---|
 | `generate_brief` ⭐ | `{ query: string, target?: string }` | **Ambitious full redesigns** — returns a build directive that makes the assistant *cook* (see below) |
+| `generate_brief_from_url` ⭐ | `{ url: string }` | **Channel any site you love** — extracts a real site's design DNA (palette, fonts, motion, techniques) into a build brief in that style |
 | `generate_from_vibe` | `{ vibe: string }` | A plain-English description → tokens + 5 components |
 | `generate_from_url` | `{ url: string }` | Match an existing site's look |
 | `generate_from_image` | `{ imageBase64: string, mimeType?: string }` | Match an image's color palette |

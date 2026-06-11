@@ -13,6 +13,7 @@
 import { searchPrompts } from "../scrapers/motionsites";
 import type { MotionsitesPrompt } from "../scrapers/motionsites-data";
 import { extractTokensFromPrompt } from "../scrapers/motionsites-token-extractor";
+import type { SiteDNA } from "./../scrapers/site-dna";
 
 // ---------------------------------------------------------------------------
 // Public result shape
@@ -216,6 +217,74 @@ function buildAssetPlan(
 // Brief assembly
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Shared brief sections — used by both the vibe brief and the URL brief so
+// the build directive / quality bar / image strategy stay identical.
+// ---------------------------------------------------------------------------
+
+function directiveLines(): string[] {
+  return [
+    "",
+    "## Build directive — BUILD THIS, do not simplify",
+    "1. **Cinematic hero with depth.** Layered gradients/glow, a focal subject, and motion on load. Never a flat centered headline on a solid background.",
+    "2. **Animate everything that earns it.** Scroll-reveal with stagger, count-ups on stats, hover micro-interactions on every interactive element, an animated headline. Motion should feel intentional, not decorative.",
+    "3. **One cohesive token system.** Define CSS variables (or Tailwind theme) for color/space/type/motion up top and use them everywhere. No ad-hoc values.",
+    "4. **Real depth & texture.** Use shadows, gradients, glass/blur, grain, and at least one standout 3D / parallax / holographic moment so it reads premium, not template.",
+    "5. **Adapt to the actual content.** Every section must reflect the user's real data and domain — never generic Button/Card/Input filler.",
+    "6. **Ship a complete page**, fully responsive, all sections wired, with working interactions (tabs, filters, modals where relevant).",
+  ];
+}
+
+function techniqueLines(recommended: Technique[]): string[] {
+  return [
+    "",
+    "## Recommended techniques (pick what fits — don't force all)",
+    ...recommended.map((t) => `- **${t.id}** — ${t.blurb}`),
+  ];
+}
+
+function qualityBarLines(): string[] {
+  return [
+    "",
+    "## Quality bar (anti-slop — reject your own output if it fails these)",
+    "- No placeholder/Lorem text, no empty sections, no unstyled default elements.",
+    "- No generic 5-component dump (Button/Card/Input/Navbar/StatCard). Build the *page*, not a kit.",
+    "- Every section visually distinct; consistent rhythm and spacing; strong type hierarchy.",
+    "- Animations are performant (transform/opacity, rAF-throttled, passive listeners) and respect `prefers-reduced-motion`.",
+    "- If a choice would look 'basic', pick the more ambitious option.",
+  ];
+}
+
+function imageSectionLines(assets: AssetSlot[]): string[] {
+  const out: string[] = [
+    "",
+    "## Asset plan — REAL images (the biggest premium multiplier)",
+    "Do NOT ship solid color blocks where a hero/feature image belongs. Generate the images below, then wire them in (object-cover, lazy-load, alt text, a gradient scrim over anything with text on top).",
+  ];
+  for (const a of assets) {
+    out.push(`- **${a.slot}** (${a.ratio}) — ${a.purpose}`);
+    out.push(`    - generate: \`${a.genPrompt}\``);
+    out.push(`    - fallback: ${a.fallback}`);
+  }
+  out.push(
+    "",
+    "## Image strategy",
+    "1. If you have an image-generation tool (e.g. **Higgsfield** `generate_image`, or any DALL·E/SD tool), GENERATE the assets above from their prompts — bespoke art beats stock and makes the result unique.",
+    "2. If not, use the free-stock fallback keywords (Unsplash / Pexels), or `picsum.photos` for neutral placeholders.",
+    "3. Never hotlink Pinterest/Google Images — those URLs rot and aren't licensed. Generated or properly-licensed stock only.",
+    "4. Treat imagery as a design layer: duotone/overlay it to the palette, add grain, and let it bleed behind text with a gradient for contrast.",
+  );
+  return out;
+}
+
+function outputLines(): string[] {
+  return [
+    "",
+    "## Output",
+    "Default to a **single self-contained HTML file** (Google Fonts via CDN, vanilla JS, no build step) so it opens by double-click. If the user's project is React, emit **React + TypeScript + Tailwind + Framer Motion** components instead. Match whatever stack the target already uses.",
+  ];
+}
+
 export function buildBrief(query: string, target?: string): BriefResult {
   const results = searchPrompts(query);
   const prompt = results[0];
@@ -270,50 +339,11 @@ export function buildBrief(query: string, target?: string): BriefResult {
     `- **Motion:** ${motionStyle} — base ${motion.durationBase}s, fast ${motion.durationFast}s, slow ${motion.durationSlow}s, stagger ${motion.staggerChildren}s. Signature beats: ${prompt.animationKeywords.join(", ")}.`,
   );
 
-  lines.push("");
-  lines.push("## Build directive — BUILD THIS, do not simplify");
-  lines.push("1. **Cinematic hero with depth.** Layered gradients/glow, a focal subject, and motion on load. Never a flat centered headline on a solid background.");
-  lines.push("2. **Animate everything that earns it.** Scroll-reveal with stagger, count-ups on stats, hover micro-interactions on every interactive element, an animated headline. Motion should feel intentional, not decorative.");
-  lines.push("3. **One cohesive token system.** Define CSS variables (or Tailwind theme) for color/space/type/motion up top and use them everywhere. No ad-hoc values.");
-  lines.push("4. **Real depth & texture.** Use shadows, gradients, glass/blur, grain, and at least one standout 3D / parallax / holographic moment so it reads premium, not template.");
-  lines.push("5. **Adapt to the actual content.** Every section must reflect the user's real data and domain — never generic Button/Card/Input filler.");
-  lines.push("6. **Ship a complete page**, fully responsive, all sections wired, with working interactions (tabs, filters, modals where relevant).");
-
-  lines.push("");
-  lines.push("## Recommended techniques (pick what fits — don't force all)");
-  for (const t of recommended) {
-    lines.push(`- **${t.id}** — ${t.blurb}`);
-  }
-
-  lines.push("");
-  lines.push("## Quality bar (anti-slop — reject your own output if it fails these)");
-  lines.push("- No placeholder/Lorem text, no empty sections, no unstyled default elements.");
-  lines.push("- No generic 5-component dump (Button/Card/Input/Navbar/StatCard). Build the *page*, not a kit.");
-  lines.push("- Every section visually distinct; consistent rhythm and spacing; strong type hierarchy.");
-  lines.push("- Animations are performant (transform/opacity, rAF-throttled, passive listeners) and respect `prefers-reduced-motion`.");
-  lines.push("- If a choice would look 'basic', pick the more ambitious option.");
-
-  lines.push("");
-  lines.push("## Asset plan — REAL images (the biggest premium multiplier)");
-  lines.push("Do NOT ship solid color blocks where a hero/feature image belongs. Generate the images below, then wire them in (object-cover, lazy-load, alt text, a gradient scrim over anything with text on top).");
-  for (const a of assets) {
-    lines.push(`- **${a.slot}** (${a.ratio}) — ${a.purpose}`);
-    lines.push(`    - generate: \`${a.genPrompt}\``);
-    lines.push(`    - fallback: ${a.fallback}`);
-  }
-
-  lines.push("");
-  lines.push("## Image strategy");
-  lines.push("1. If you have an image-generation tool (e.g. **Higgsfield** `generate_image`, or any DALL·E/SD tool), GENERATE the assets above from their prompts — bespoke art beats stock and makes the result unique.");
-  lines.push("2. If not, use the free-stock fallback keywords (Unsplash / Pexels), or `picsum.photos` for neutral placeholders.");
-  lines.push("3. Never hotlink Pinterest/Google Images — those URLs rot and aren't licensed. Generated or properly-licensed stock only.");
-  lines.push("4. Treat imagery as a design layer: duotone/overlay it to the palette, add grain, and let it bleed behind text with a gradient for contrast.");
-
-  lines.push("");
-  lines.push("## Output");
-  lines.push(
-    "Default to a **single self-contained HTML file** (Google Fonts via CDN, vanilla JS, no build step) so it opens by double-click. If the user's project is React, emit **React + TypeScript + Tailwind + Framer Motion** components instead. Match whatever stack the target already uses.",
-  );
+  lines.push(...directiveLines());
+  lines.push(...techniqueLines(recommended));
+  lines.push(...qualityBarLines());
+  lines.push(...imageSectionLines(assets));
+  lines.push(...outputLines());
 
   return {
     source: {
@@ -343,6 +373,123 @@ export function buildBrief(query: string, target?: string): BriefResult {
     },
     brandColors,
     techniques: techIds,
+    assets,
+    brief: lines.join("\n"),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// URL brief — reverse-engineer a real site's design DNA into a build brief.
+// ---------------------------------------------------------------------------
+
+/** Map detected libraries/features on a real site to our technique toolkit. */
+const FEATURE_TO_TECH: Record<string, string[]> = {
+  gradients: ["gradient-shimmer-text", "cinematic-hero"],
+  glassmorphism: ["glass-nav-condense"],
+  "transforms-3d": ["3d-perspective-floor", "mouse-parallax"],
+  "three.js": ["3d-perspective-floor", "mouse-parallax"],
+  spline: ["3d-perspective-floor"],
+  "css-animations": ["intersection-reveal", "micro-interactions"],
+  "framer-motion": ["intersection-reveal", "micro-interactions"],
+  gsap: ["intersection-reveal", "draw-in-stroke", "sticky-stack-cards"],
+  marquee: ["infinite-marquee"],
+  "blend-modes": ["holo-foil-tilt"],
+  "locomotive-scroll": ["character-reveal", "sticky-stack-cards"],
+  aos: ["intersection-reveal"],
+  lottie: ["micro-interactions"],
+  video: ["cinematic-hero"],
+  canvas: ["cinematic-hero", "mouse-parallax"],
+  sticky: ["sticky-stack-cards"],
+};
+
+function techniquesForDNA(dna: SiteDNA): Technique[] {
+  const ids = new Set<string>(BASE_TECHNIQUE_IDS);
+  for (const sig of [...dna.libs, ...dna.features]) {
+    for (const t of FEATURE_TO_TECH[sig] ?? []) ids.add(t);
+  }
+  return TECHNIQUES.filter((t) => ids.has(t.id));
+}
+
+function dnaMotionStyle(dna: SiteDNA): string {
+  const heavy = ["gsap", "three.js", "spline", "framer-motion", "locomotive-scroll"];
+  if (dna.libs.some((l) => heavy.includes(l)) || dna.features.includes("transforms-3d")) {
+    return "cinematic / scroll-driven";
+  }
+  if (dna.features.includes("css-animations")) return "snappy";
+  return "smooth";
+}
+
+/**
+ * Build a design brief from a real site's extracted DNA. The palette,
+ * fonts, motion, and recommended techniques all come from the actual
+ * reference — so the model builds in *that site's* design language.
+ */
+export function buildBriefFromDNA(dna: SiteDNA): BriefResult {
+  const recommended = techniquesForDNA(dna);
+  const motionStyle = dnaMotionStyle(dna);
+  const paletteDesc = `${dna.theme} theme, ${dna.roles.primary} / ${dna.roles.accent} on ${dna.roles.background}`;
+  const subject = dna.title || dna.description || dna.url;
+  const assets = buildAssetPlan(subject, dna.description || undefined, paletteDesc, motionStyle);
+
+  const fontList = dna.fonts.length ? dna.fonts.join(", ") : "match the reference's type feel (infer a close Google Font)";
+
+  const lines: string[] = [];
+  lines.push(`# DESIGN BRIEF — built from a live reference: ${dna.url}`);
+  lines.push("");
+  lines.push(
+    "Reverse-engineer this reference's **design language** and apply it to the user's content. " +
+      "Match the feel, palette, type, motion, and structure — but build the user's own page with their data. " +
+      "Credit the inspiration; never copy the site's text or images.",
+  );
+
+  lines.push("");
+  lines.push("## Design DNA (extracted from the live site)");
+  if (dna.title) lines.push(`- **Reference:** ${dna.title}`);
+  lines.push(`- **Theme:** ${dna.theme}`);
+  lines.push(
+    `- **Palette (real hex from the page):** background ${dna.roles.background}, text ${dna.roles.foreground}, primary ${dna.roles.primary}, accent ${dna.roles.accent}` +
+      (dna.colors.length ? ` · full set: ${dna.colors.join(", ")}` : ""),
+  );
+  lines.push(`- **Type:** ${fontList}.`);
+  lines.push(`- **Corners / shape language:** ${dna.radiusStyle}.`);
+  lines.push(`- **Density:** ${dna.density}.`);
+  if (dna.libs.length) lines.push(`- **Detected stack:** ${dna.libs.join(", ")}.`);
+  if (dna.features.length) lines.push(`- **Techniques in use on the reference:** ${dna.features.join(", ")}.`);
+  lines.push(`- **Motion:** ${motionStyle}.`);
+
+  lines.push(...directiveLines());
+  lines.push(...techniqueLines(recommended));
+  lines.push(...qualityBarLines());
+  lines.push(...imageSectionLines(assets));
+  lines.push(...outputLines());
+
+  return {
+    source: {
+      name: dna.title || dna.url,
+      category: "URL reference",
+      type: "site",
+      promptUrl: dna.url,
+      animationKeywords: dna.features,
+      score: 0,
+    },
+    palette: {
+      primary: dna.roles.primary,
+      secondary: dna.roles.accent,
+      accent: dna.roles.accent,
+      background: dna.roles.background,
+      surface: dna.roles.background,
+      foreground: dna.roles.foreground,
+      sourceHex: dna.colors,
+      fonts: {
+        display: dna.fonts[0] ?? "Inter",
+        body: dna.fonts[1] ?? dna.fonts[0] ?? "Inter",
+        mono: "JetBrains Mono",
+      },
+      motionStyle,
+      durations: { base: 0.5, fast: 0.25, slow: 0.9, stagger: 0.08 },
+    },
+    brandColors: dna.colors,
+    techniques: recommended.map((t) => t.id),
     assets,
     brief: lines.join("\n"),
   };
