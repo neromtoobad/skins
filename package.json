@@ -1,6 +1,6 @@
 {
   "name": "skins-mcp",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Model Context Protocol server that converts a natural-language vibe, scraped URL, base64 image, or motionsites.ai design spec into a complete React + Tailwind + Framer Motion design system.",
   "main": "dist/src/index.js",
   "bin": {
@@ -17,7 +17,8 @@
     "demo": "ts-node demo.ts",
     "build": "tsc",
     "verify": "tsc --noEmit && node scripts/verify-output.mjs",
-    "verify:browser": "node scripts/browser-verify.mjs"
+    "verify:browser": "node scripts/browser-verify.mjs",
+    "add-reference": "node scripts/add-reference.mjs"
   },
   "keywords": [
     "mcp",

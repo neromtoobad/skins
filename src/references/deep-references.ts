@@ -251,6 +251,95 @@ export const DEEP_REFERENCES: DeepReference[] = [
     techniques: ["intersection-reveal", "draw-in-stroke", "micro-interactions", "magnetic-hover", "texture-overlays"],
     signature: "Rounded everything + warm earthy palette + gentle floating shapes — it breathes.",
   },
+  {
+    "id": "ecommerce-product",
+    "name": "Vitrine — Product Launch",
+    "category": "E-commerce",
+    "keywords": [
+      "ecommerce",
+      "e-commerce",
+      "store",
+      "product",
+      "shop",
+      "launch",
+      "retail",
+      "dtc",
+      "cart",
+      "checkout",
+      "sneaker",
+      "gadget",
+      "drop"
+    ],
+    "summary": "Editorial product storytelling: oversized hero shot, sticky product detail, buttery image zoom and a magnetic add-to-cart.",
+    "theme": "light",
+    "palette": {
+      "background": "#faf8f5",
+      "surface": "#ffffff",
+      "foreground": "#141312",
+      "primary": "#141312",
+      "accent": "#ff5a3c",
+      "hexes": [
+        "#faf8f5",
+        "#ffffff",
+        "#141312",
+        "#ff5a3c",
+        "#e7e2da"
+      ]
+    },
+    "fonts": {
+      "display": "Clash Display",
+      "body": "Inter",
+      "mono": "Space Mono",
+      "note": "A characterful grotesk display (Clash/Cabinet) for the product name; clean sans body; mono for price/SKU."
+    },
+    "motion": {
+      "style": "smooth",
+      "beats": [
+        "image-zoom",
+        "reveal",
+        "sticky-detail",
+        "count-up",
+        "magnetic"
+      ]
+    },
+    "sections": [
+      {
+        "name": "Hero",
+        "detail": "Full-bleed product key shot with a thin gradient scrim, oversized display product name bottom-left, a magnetic 'Shop now' pill, subtle ken-burns zoom on the image."
+      },
+      {
+        "name": "Sticky product detail",
+        "detail": "Two-column: a sticky image gallery (thumbnails switch the main shot with a crossfade) left, scrolling specs/price/variant picker right, an add-to-cart with a press + 'added' micro-interaction."
+      },
+      {
+        "name": "Feature strip",
+        "detail": "3 benefit cards with line icons that draw in, hover lift, a count-up stat (e.g. reviews / sold)."
+      },
+      {
+        "name": "Story",
+        "detail": "Editorial split sections, full-bleed lifestyle imagery with parallax, copy revealing on scroll."
+      },
+      {
+        "name": "Cross-sell grid",
+        "detail": "Related products grid with image-zoom hover and quick-add; tasteful, not busy."
+      },
+      {
+        "name": "Footer CTA",
+        "detail": "Warm band, newsletter field, trust badges, generous link groups."
+      }
+    ],
+    "techniques": [
+      "cinematic-hero",
+      "sticky-stack-cards",
+      "intersection-reveal",
+      "magnetic-hover",
+      "count-up",
+      "draw-in-stroke",
+      "micro-interactions"
+    ],
+    "signature": "Editorial product photography + a sticky detail column with buttery image-zoom — a boutique, not a catalog."
+  },
+  // ADD-REFERENCE-MARKER — scripts/add-reference.mjs inserts new entries above this line. Do not remove.
 ];
 
 // ---------------------------------------------------------------------------
