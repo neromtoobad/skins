@@ -339,6 +339,181 @@ export const DEEP_REFERENCES: DeepReference[] = [
     ],
     "signature": "Editorial product photography + a sticky detail column with buttery image-zoom — a boutique, not a catalog."
   },
+  {
+    "id": "audio-warm-analog",
+    "name": "Static — Warm Analog Radio",
+    "category": "Music / Audio",
+    "keywords": [
+      "music",
+      "radio",
+      "audio",
+      "fm",
+      "station",
+      "streaming",
+      "podcast",
+      "playlist",
+      "sound",
+      "retro",
+      "analog",
+      "vinyl",
+      "dj",
+      "lofi",
+      "broadcast"
+    ],
+    "summary": "Warm cream-and-amber analog warmth — vinyl, waveforms, tactile dials. The deliberate opposite of cold blue-tech.",
+    "theme": "dark",
+    "palette": {
+      "background": "#130d09",
+      "surface": "#1f1611",
+      "foreground": "#f4e9da",
+      "primary": "#ff8c42",
+      "accent": "#e6b84f",
+      "hexes": [
+        "#130d09",
+        "#1f1611",
+        "#ff8c42",
+        "#e6b84f",
+        "#f4e9da"
+      ]
+    },
+    "fonts": {
+      "display": "Syne",
+      "body": "Inter",
+      "mono": "Space Mono",
+      "note": "A characterful warm grotesk display (Syne/Bricolage); mono for frequencies/timecodes."
+    },
+    "motion": {
+      "style": "smooth",
+      "beats": [
+        "waveform",
+        "vinyl-spin",
+        "warm-glow",
+        "reveal",
+        "marquee"
+      ]
+    },
+    "sections": [
+      {
+        "name": "Hero",
+        "detail": "Warm cream headline on near-black-brown, a continuously animated audio waveform/EQ across the width, a slowly spinning vinyl/tuning-dial; amber glow, film grain."
+      },
+      {
+        "name": "Now playing",
+        "detail": "A tactile player card with a real waveform scrubber, a knurled volume knob, station frequency in mono; warm amber accents, soft inner shadow like a device."
+      },
+      {
+        "name": "Stations grid",
+        "detail": "Warm cards with rounded corners, amber 'LIVE' tags that pulse, hover lift + warm glow, small animated EQ bars on the playing one."
+      },
+      {
+        "name": "Genre dial",
+        "detail": "Genre chips styled like radio presets; selecting one slides a tuning indicator with a subtle static transition."
+      },
+      {
+        "name": "Schedule / footer",
+        "detail": "A warm timeline of upcoming shows; footer with a vintage wordmark and a newsletter field."
+      }
+    ],
+    "techniques": [
+      "draw-in-stroke",
+      "gradient-shimmer-text",
+      "infinite-marquee",
+      "cursor-spotlight",
+      "intersection-reveal",
+      "count-up",
+      "micro-interactions",
+      "texture-overlays"
+    ],
+    "signature": "A live audio waveform + a spinning tuning dial in warm amber — it feels like a physical radio, not a SaaS dashboard."
+  },
+  {
+    "id": "music-vibrant-pulse",
+    "name": "Pulse — Vibrant Music Stream",
+    "category": "Music / Audio",
+    "keywords": [
+      "music",
+      "streaming",
+      "playlist",
+      "festival",
+      "concert",
+      "dj",
+      "edm",
+      "dance",
+      "vibrant",
+      "gradient",
+      "party",
+      "beats",
+      "sound",
+      "audio",
+      "radio",
+      "stream"
+    ],
+    "summary": "High-energy festival gradients — magenta to orange on black, oversized type, a pulsing live equalizer. Zero blue.",
+    "theme": "dark",
+    "palette": {
+      "background": "#070509",
+      "surface": "#16101c",
+      "foreground": "#ffffff",
+      "primary": "#ff2d75",
+      "accent": "#ff8a00",
+      "hexes": [
+        "#070509",
+        "#ff2d75",
+        "#ff8a00",
+        "#ffd23f",
+        "#ffffff"
+      ]
+    },
+    "fonts": {
+      "display": "Clash Display",
+      "body": "Inter",
+      "mono": "Space Mono",
+      "note": "Bold expressive display (Clash/Cabinet Grotesk), uppercase tracking; gradient-clip the headline."
+    },
+    "motion": {
+      "style": "snappy",
+      "beats": [
+        "pulse",
+        "gradient-shimmer",
+        "beat-bounce",
+        "marquee",
+        "reveal"
+      ]
+    },
+    "sections": [
+      {
+        "name": "Hero",
+        "detail": "Giant gradient-shimmer headline (magenta to orange), a pulsing animated equalizer-bar visual that bounces, a vivid now-playing chip; black field with a colored bloom that follows the cursor."
+      },
+      {
+        "name": "Now playing",
+        "detail": "Glassy player with a gradient progress bar, animated frequency bars, big circular play with a glow halo; track art with a holographic tilt."
+      },
+      {
+        "name": "Playlists / stations grid",
+        "detail": "Vivid gradient cards (each a different hue), 3D tilt on hover, play overlay, animated EQ on the active one."
+      },
+      {
+        "name": "Genre marquee",
+        "detail": "An infinite marquee of genres in big uppercase type, hue-shifting as it scrolls."
+      },
+      {
+        "name": "CTA",
+        "detail": "Full-bleed gradient band, 'start listening' with a shine sweep, counts of live listeners ticking up."
+      }
+    ],
+    "techniques": [
+      "gradient-shimmer-text",
+      "cinematic-hero",
+      "holo-foil-tilt",
+      "infinite-marquee",
+      "count-up",
+      "cursor-spotlight",
+      "micro-interactions",
+      "intersection-reveal"
+    ],
+    "signature": "A live pulsing equalizer + magenta-to-orange gradients — pure energy, deliberately not a blue tech app."
+  },
   // ADD-REFERENCE-MARKER — scripts/add-reference.mjs inserts new entries above this line. Do not remove.
 ];
 

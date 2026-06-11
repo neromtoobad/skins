@@ -227,6 +227,7 @@ function directiveLines(): string[] {
   return [
     "",
     "## Build directive — BUILD THIS, do not simplify",
+    "> **This is a full transformation, not a reskin.** Adopt THIS brief's palette, type, and layout wholesale — replace the page's existing colors and structure, don't tint them. A redesign that still resembles the original (same color family, same layout) has FAILED the brief. Rebuild the page from the blueprint; reuse only the user's real content/data.",
     "1. **Cinematic hero with depth.** Layered gradients/glow, a focal subject, and motion on load. Never a flat centered headline on a solid background.",
     "2. **Animate everything that earns it.** Scroll-reveal with stagger, count-ups on stats, hover micro-interactions on every interactive element, an animated headline. Motion should feel intentional, not decorative.",
     "3. **One cohesive token system.** Define CSS variables (or Tailwind theme) for color/space/type/motion up top and use them everywhere. No ad-hoc values.",
