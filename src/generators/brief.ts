@@ -287,6 +287,53 @@ function outputLines(): string[] {
   ];
 }
 
+/**
+ * A blunt rebuild order. Placed at the very TOP of a redesign brief (the
+ * highest-weighted position) so the model rebuilds from scratch instead of
+ * tinting the existing page.
+ */
+function rebuildOrderLines(): string[] {
+  return [
+    "⛔ REBUILD FROM SCRATCH — DO NOT EDIT THE EXISTING DESIGN.",
+    "This is a from-scratch redesign, not a touch-up. Discard the current colours, layout, fonts, and components entirely — they are irrelevant. Keep ONLY the user's real text/data. Produce a complete new file. If the result shares the original's colour family or layout, you have failed: start over and commit fully to the palette + blueprint below.",
+    "",
+  ];
+}
+
+/**
+ * A concrete, paste-ready CSS token block in the NEW palette. Handing the
+ * model real values (not a prose description) is the strongest lever the MCP
+ * has to actually flip the colours — "change the palette" becomes copy-paste.
+ * Skipped when colours aren't real hex (the motionsites fallback path).
+ */
+function tokenScaffoldLines(
+  p: { background: string; surface: string; foreground: string; primary: string; accent: string },
+  fonts: { display: string; body: string; mono: string },
+  motionStyle: string,
+): string[] {
+  const isHex = (s: string) => /^#[0-9a-fA-F]{3,8}$/.test(s);
+  if (![p.background, p.surface, p.foreground, p.primary, p.accent].every(isHex)) return [];
+  const dur = /snappy/.test(motionStyle) ? "0.3s" : /slow|cinematic/.test(motionStyle) ? "0.8s" : "0.5s";
+  return [
+    "",
+    "## Starter tokens — paste these FIRST; they replace the current palette",
+    "```css",
+    ":root {",
+    `  --bg: ${p.background};        /* page background — replaces the old one entirely */`,
+    `  --surface: ${p.surface};      /* cards / panels */`,
+    `  --fg: ${p.foreground};        /* text */`,
+    `  --primary: ${p.primary};      /* brand / CTAs */`,
+    `  --accent: ${p.accent};        /* highlights */`,
+    `  --font-display: '${fonts.display}', sans-serif;`,
+    `  --font-body: '${fonts.body}', sans-serif;`,
+    `  --font-mono: '${fonts.mono}', monospace;`,
+    `  --dur: ${dur};                /* base motion duration */`,
+    "}",
+    "```",
+    "Build the whole page off these variables. If any of the original colours survive, the redesign is wrong.",
+  ];
+}
+
 /** Resolve technique ids to toolkit entries, preserving the given order. */
 function techniquesByIds(ids: string[]): Technique[] {
   return ids
@@ -312,6 +359,7 @@ export function buildBriefFromReference(
   const assets = buildAssetPlan(subject, target, paletteDesc, ref.motion.style);
 
   const lines: string[] = [];
+  if (target) lines.push(...rebuildOrderLines());
   lines.push(`# DESIGN BRIEF — "${ref.name}" (${ref.category})`);
   lines.push("");
   lines.push(
@@ -338,6 +386,8 @@ export function buildBriefFromReference(
   );
   lines.push(`- **Type:** display \`${ref.fonts.display}\`, body \`${ref.fonts.body}\`, mono \`${ref.fonts.mono}\` — ${ref.fonts.note}`);
   lines.push(`- **Motion:** ${ref.motion.style} — signature beats: ${ref.motion.beats.join(", ")}.`);
+
+  lines.push(...tokenScaffoldLines(ref.palette, ref.fonts, ref.motion.style));
 
   lines.push("");
   lines.push("## Reference blueprint — build these sections");
@@ -409,6 +459,7 @@ export function buildBrief(query: string, target?: string): BriefResult {
   // ----- assemble the directive text (this is what the model reads) -----
   const lines: string[] = [];
 
+  if (target) lines.push(...rebuildOrderLines());
   lines.push(`# DESIGN BRIEF — "${prompt.name}" direction (${prompt.category})`);
   lines.push("");
   lines.push(
@@ -534,6 +585,7 @@ export function buildBriefFromDNA(dna: SiteDNA): BriefResult {
   const fontList = dna.fonts.length ? dna.fonts.join(", ") : "match the reference's type feel (infer a close Google Font)";
 
   const lines: string[] = [];
+  lines.push(...rebuildOrderLines());
   lines.push(`# DESIGN BRIEF — built from a live reference: ${dna.url}`);
   lines.push("");
   lines.push(
@@ -556,6 +608,12 @@ export function buildBriefFromDNA(dna: SiteDNA): BriefResult {
   if (dna.libs.length) lines.push(`- **Detected stack:** ${dna.libs.join(", ")}.`);
   if (dna.features.length) lines.push(`- **Techniques in use on the reference:** ${dna.features.join(", ")}.`);
   lines.push(`- **Motion:** ${motionStyle}.`);
+
+  lines.push(...tokenScaffoldLines(
+    { background: dna.roles.background, surface: dna.colors[1] ?? dna.roles.background, foreground: dna.roles.foreground, primary: dna.roles.primary, accent: dna.roles.accent },
+    { display: dna.fonts[0] ?? "Inter", body: dna.fonts[1] ?? dna.fonts[0] ?? "Inter", mono: "JetBrains Mono" },
+    motionStyle,
+  ));
 
   lines.push(...directiveLines());
   lines.push(...techniqueLines(recommended));
