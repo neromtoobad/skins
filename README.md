@@ -1,4 +1,4 @@
-# skins-mcp
+SKINS MCP
 
 **Turn a vibe, a URL, an image, or a design name into a production-ready React + Tailwind + Framer Motion design system — in one tool call.**
 
