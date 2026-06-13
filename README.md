@@ -2,6 +2,8 @@
 
 **Turn a vibe, a URL, an image, or a design name into a production-ready React + Tailwind + Framer Motion design system — in one tool call.**
 
+[![CI](https://github.com/neromtoobad/skins/actions/workflows/ci.yml/badge.svg)](https://github.com/neromtoobad/skins/actions/workflows/ci.yml)
+
 Most developers ship great logic and mediocre UI. skins-mcp fixes that. It gives your AI assistant a direct line to real design intelligence: battle-tested color systems, motion specs extracted from 61 premium hero sections, and a five-output bundle (tokens, components, layout, preview, files) that drops straight into any React codebase.
 
 No API key required. No design background required. One call and you have a design system.
@@ -466,7 +468,17 @@ Railway gives you a public URL — this project's live deployment is `https://sk
 | `npm run serve:prod` | `node dist/src/server.js` | Start the compiled HTTP server |
 | `npm run demo` | `ts-node demo.ts` | Run the four design-system generators end-to-end, write demo-output/ |
 | `npm run build` | `tsc` | Type-check and emit dist/ |
+| `npm test` | `ts-node test/run.ts` | Run the unit test suite (zero deps — Node's built-in runner) |
 | `npm run verify` | `tsc --noEmit && node scripts/verify-output.mjs` | Type-check + validate demo output shape |
+| `npm run add-reference -- <file.json>` | `node scripts/add-reference.mjs` | Validate + append a `DeepReference` (extraction pipeline) |
+
+## Tests & CI
+
+`npm test` runs a zero-dependency suite (Node's built-in `node:test`) covering the brief engine's
+guarantees — **no AI-slop palette, the hard rebuild order, paste-ready tokens, enforced motion code**
+— plus structural validation of all 13 design blueprints and the live-site DNA extractor (against an
+offline fixture). [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs `tsc --noEmit` →
+`npm test` → `npm run build` on every push and PR.
 
 ---
 

@@ -18,7 +18,8 @@
     "build": "tsc",
     "verify": "tsc --noEmit && node scripts/verify-output.mjs",
     "verify:browser": "node scripts/browser-verify.mjs",
-    "add-reference": "node scripts/add-reference.mjs"
+    "add-reference": "node scripts/add-reference.mjs",
+    "test": "ts-node test/run.ts"
   },
   "keywords": [
     "mcp",
