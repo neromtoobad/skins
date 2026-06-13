@@ -16,15 +16,27 @@ No API key required. No design background required. One call and you have a desi
 
 ## What it does
 
-skins-mcp is a [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes four tools. Every tool returns the same canonical shape so downstream code never needs to special-case anything.
+skins-mcp is a [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes **six tools** in two families.
 
-**`generate_from_vibe`** — describe what you want in plain English. "dark luxury crypto dashboard", "soft pastel fintech app", "brutalist web3 portfolio". The server matches your description against nine curated design presets and — if it finds a closer match — against 61 real production hero sections bundled from motionsites.ai. The best-matching design spec drives the output.
+### The brief engine (the headline)
 
-**`generate_from_url`** — pass any public URL. The server scrapes its dominant colors, font families, and layout density, then builds a design system that actually matches the site you pointed at.
+Instead of returning canned code, these return a **design brief + build directive** — a prompt that instructs the calling model (Claude, Codex) to *build* a complete, animated, on-brand page itself. Each brief carries a distinctive palette as paste-ready `:root` CSS tokens, a section-by-section blueprint, an explicit **anti-AI-slop colour rule**, **required motion** with copy-paste reveal/count-up/parallax code, and a hard "rebuild from scratch, don't reskin" order.
+
+**`generate_brief`** — a vibe (+ optional `target` to redesign) → a build brief, matched against a curated library of full design blueprints. The "make it cook" path.
+
+**`generate_brief_from_url`** — point at any live site you love → it extracts that site's **design DNA** (palette + roles, fonts via `@font-face`/Google Fonts, animation libraries, glass/gradient/3D features — fetching external stylesheets too) and returns a brief in that site's design language.
+
+### The design-system generators
+
+These return the canonical five-output shape (`tokens`, `components`, `layout`, `preview`, `files`) so downstream code never needs to special-case anything.
+
+**`generate_from_vibe`** — describe what you want in plain English. The server matches your description against nine curated design presets and — if it finds a closer match — against 61 real production hero sections bundled from motionsites.ai.
+
+**`generate_from_url`** — pass any public URL. The server scrapes its dominant colors, font families, and layout density, then builds a design system that matches the site.
 
 **`generate_from_image`** — pass a base64 image. k-means color quantization extracts a five-color palette, maps each centroid to the closest Tailwind tier, and generates a design system from your image's visual identity.
 
-**`generate_from_motionsites`** — pass a design name, category, or keyword. The server looks up the matching prompt in the bundled motionsites.ai library (61 production hero specs shipped with the server, covering SaaS, agency, portfolio, landing pages, Web3, fintech, biotech, and more), extracts its exact color values, spacing, motion timing, and typography, and generates a full design system from that spec. This is the tool that makes skins-mcp genuinely different.
+**`generate_from_motionsites`** — pass a design name, category, or keyword. The server looks up the matching prompt in the bundled motionsites.ai library (61 production hero specs), extracts its exact color values, spacing, motion timing, and typography, and generates a full design system from that spec.
 
 ---
 
@@ -46,7 +58,7 @@ You call one tool. You get a design system you can actually ship.
 
 ## The motionsites.ai integration
 
-The fourth tool is where skins-mcp becomes a research engine.
+`generate_from_motionsites` is where skins-mcp becomes a research engine.
 
 motionsites.ai is a premium library of production hero section prompts. Each prompt is a detailed specification: exact hex colors, font choices, animation curves, z-index layering, component structure, spacing values. These are not mood boards — they are engineering specs written to be implemented directly.
 
@@ -76,7 +88,7 @@ npm install
 # 3. Build
 npm run build
 
-# 4. Run the demo (tests all four tools, writes demo-output/)
+# 4. Run the demo (exercises the four design-system generators, writes demo-output/)
 npm run demo
 
 # 5. Open the previews
@@ -112,7 +124,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-Fully quit and reopen Claude Desktop. The four tools appear under the hammer icon.
+Fully quit and reopen Claude Desktop. All six tools appear under the hammer icon.
 
 **Option B — hosted URL (no clone, no install):**
 
@@ -139,7 +151,36 @@ See **[USING.md](USING.md)** for every client and tool example.
 
 ---
 
-## The four tools
+## The six tools
+
+### `generate_brief`
+
+Return a **design brief + build directive** for the calling model to build from. Matched against a curated library of 13 full design blueprints, falling back to the 61 bundled motionsites specs.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `query` | string | yes | Design direction / vibe. Example: `"bold sports broadcast"`, `"warm analog radio"`, `"dark luxury fintech"`. |
+| `target` | string | no | What you're redesigning (sections/content), so the brief adapts to it and emits a from-scratch rebuild order. |
+
+Returns the full brief text plus structured `source`, `palette`, `techniques`, and `assets` (per-image generation prompts). Use this when you want an ambitious page and intend to write the code yourself.
+
+```json
+{ "name": "generate_brief", "arguments": { "query": "warm analog radio", "target": "a live internet-radio app called FREQUENCE" } }
+```
+
+### `generate_brief_from_url`
+
+Point at any live site and get a brief in **that site's** design language.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `url` | string | yes | URL whose design you want to channel (an Awwwards winner, a competitor, an app you love). |
+
+Fetches the page (and its external stylesheets), extracts the design DNA — palette + roles, fonts (`@font-face` + Google Fonts), animation libraries (framer-motion / gsap / three.js / lottie / spline), glass/gradient/3D features, dark vs light, radius, density — and returns a brief that channels it. Returns `{ ok: false, error }` if the URL is unreachable.
+
+```json
+{ "name": "generate_brief_from_url", "arguments": { "url": "https://linear.app" } }
+```
 
 ### `generate_from_vibe`
 
@@ -423,7 +464,7 @@ Railway gives you a public URL — this project's live deployment is `https://sk
 | `npm run start` | `ts-node src/index.ts` | Start the stdio MCP server |
 | `npm run serve` | `ts-node src/server.ts` | Start the HTTP/SSE server |
 | `npm run serve:prod` | `node dist/src/server.js` | Start the compiled HTTP server |
-| `npm run demo` | `ts-node demo.ts` | Run all four tools end-to-end, write demo-output/ |
+| `npm run demo` | `ts-node demo.ts` | Run the four design-system generators end-to-end, write demo-output/ |
 | `npm run build` | `tsc` | Type-check and emit dist/ |
 | `npm run verify` | `tsc --noEmit && node scripts/verify-output.mjs` | Type-check + validate demo output shape |
 
@@ -435,39 +476,51 @@ Railway gives you a public URL — this project's live deployment is `https://sk
 src/
 ├── types.ts                      # DesignTokens, ToolOutput, Preset, etc.
 ├── llm.ts                        # OpenAI-compatible client + LlmUnavailableError
-├── index.ts                      # stdio MCP server entry point
-├── server.ts                     # HTTP/SSE server entry point
+├── index.ts                      # stdio MCP server entry point (6 tools)
+├── server.ts                     # HTTP/SSE server entry point (express 5, optional auth lock)
 ├── vibes/
-│   └── presets.ts                # 8+ built-in design presets
+│   └── presets.ts                # 9 built-in design presets
+├── references/
+│   └── deep-references.ts        # curated full design blueprints (13, grown via the pipeline)
 ├── scrapers/
-│   ├── motionsites.ts            # fetches + caches the motionsites.ai prompt library
-│   └── motionsites-token-extractor.ts  # parses prompts → Partial<DesignTokens>
+│   ├── motionsites-data.ts       # 61 bundled motionsites.ai prompt specs (local, no network)
+│   ├── motionsites.ts            # search/scoring over the bundled library
+│   ├── motionsites-token-extractor.ts  # prompt spec → Partial<DesignTokens>
+│   └── site-dna.ts               # live-site design-DNA extractor (palette/fonts/libs/features)
 ├── generators/
 │   ├── tokens.ts                 # vibe/colors/fontHints → DesignTokens
 │   ├── components.ts             # DesignTokens → 5 TSX components
 │   ├── layout.ts                 # DesignTokens → full-page TSX layout
-│   └── preview.ts                # DesignTokens + layout → self-contained HTML
+│   ├── preview.ts                # DesignTokens + layout → self-contained HTML
+│   └── brief.ts                  # the brief engine: blueprint/DNA → build directive + asset plan
 └── tools/
-    ├── from-vibe.ts              # generate_from_vibe (now motionsites-aware)
+    ├── from-vibe.ts              # generate_from_vibe (motionsites-aware)
     ├── from-url.ts               # generate_from_url
     ├── from-image.ts             # generate_from_image
-    └── from-motionsites.ts       # generate_from_motionsites
+    ├── from-motionsites.ts       # generate_from_motionsites
+    ├── from-brief.ts             # generate_brief
+    └── from-url-brief.ts         # generate_brief_from_url
+scripts/add-reference.mjs         # validate + append a DeepReference (the extraction pipeline)
+docs/EXTRACTION_RECIPE.md         # agent recipe for growing the reference library
 ```
 
-**Data flow for every tool:**
+**Two data flows.** The *generators* are deterministic templates:
 
 ```
-input
-  └─► extract signals (colors / vibe / prompt spec)
-        └─► score against presets + motionsites library
-              └─► generateTokens()
-                    ├─► generateComponents()
-                    ├─► generateLayout()
-                    └─► generatePreview()
-                          └─► ToolOutput (tokens + components + layout + preview + files)
+input → extract signals → score vs presets + motionsites → generateTokens()
+      → generateComponents() / generateLayout() / generatePreview()
+      → ToolOutput (tokens + components + layout + preview + files)
 ```
 
-`generateTokens` is the only step with branching logic. Every downstream generator is a pure function of the resolved tokens. Same tokens always produces the same output.
+The *brief engine* returns a directive for the model to build from:
+
+```
+vibe / URL → match a deep blueprint (or extract site DNA) → buildBrief…()
+           → rebuild order + :root token scaffold + section blueprint
+             + technique toolkit + REQUIRED motion code + image asset plan
+```
+
+Every generator is a pure function of the resolved tokens — the same input always produces the same output.
 
 ---
 
