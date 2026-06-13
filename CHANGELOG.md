@@ -3,6 +3,11 @@
 All notable changes to **skins-mcp**. Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 this project uses semantic-ish versioning. The live HTTP server reports its version at `/health`.
 
+## 0.8.3
+- **Optional server lock** (`SKINS_AUTH_TOKEN`): when set, `/sse` and `/messages` require a bearer/query token; `/health` stays open and reports `locked`. Off by default (backwards-compatible). Logic extracted to `src/auth.ts` and unit-tested.
+- **Test suite + CI:** zero-dependency `node:test` suite (18 tests) covering the brief engine's guarantees, reference-library validity, DNA extraction, and the auth gate; GitHub Actions runs type-check → test → build on every push/PR. Removed the unused `jest.config.js`.
+- Added a brief-engine **ADR** (`docs/plans/brief-engine.md`).
+
 ## 0.8.2
 - **Killed the indigo AI-slop default.** Re-paletted the most-matched dark archetypes — `apex` → emerald/lime, `cosmic` → cyan/gold — so a generic "dark AI dashboard" no longer returns indigo/violet.
 - Every brief now carries an explicit **anti-AI-slop colour rule** (forbids indigo/violet on near-black).

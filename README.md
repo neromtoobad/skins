@@ -433,6 +433,18 @@ All optional. The server runs fully offline without any of them.
 | `OPENAI_BASE_URL` | `https://api.openai.com/v1` | Override to point at any OpenAI-compatible endpoint (Ollama, LM Studio, Azure, Together) |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Model name for LLM refinement |
 | `PORT` | `3000` | Port for the HTTP/SSE server (`npm run serve`) |
+| `SKINS_AUTH_TOKEN` | none | **Optional server lock.** When set, `/sse` and `/messages` require it (`Authorization: Bearer <token>` or `?token=<token>`); `/health` stays open. Unset → open (default). |
+
+### Securing a hosted server
+
+The HTTP server is open by default. To stop strangers from using your deployment, set `SKINS_AUTH_TOKEN` (e.g. on Railway), then point clients at it with the token:
+
+```bash
+# Claude Code — pass the token as a header
+claude mcp add --transport sse skins https://<your-app>.up.railway.app/sse --header "Authorization: Bearer <token>"
+```
+
+No secrets are ever stored in the repo — `OPENAI_API_KEY` and `SKINS_AUTH_TOKEN` are read from the environment only. `/health` reports `"locked": true|false`.
 
 ---
 

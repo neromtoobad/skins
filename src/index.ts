@@ -52,7 +52,7 @@ import { registerFromUrlBrief } from "./tools/from-url-brief";
 export function buildServer(): McpServer {
   const server = new McpServer({
     name: "skins-mcp",
-    version: "0.8.2",
+    version: "0.8.3",
   });
 
   // Register every tool on the single server instance. The registrations

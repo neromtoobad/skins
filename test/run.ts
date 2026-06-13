@@ -5,3 +5,4 @@
 import "./brief.test";
 import "./references.test";
 import "./site-dna.test";
+import "./auth.test";
